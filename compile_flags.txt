@@ -1,0 +1,4 @@
+-std=c++14
+-Iobj/
+-I/usr/share/verilator/include
+-I/usr/share/verilator/include/vltstd
