@@ -2,6 +2,8 @@ import math
 import pygame
 import numpy as np
 from math import sqrt
+from math import sin
+from math import cos
 
 pygame.init()
 screen = pygame.display.set_mode((500, 500))
@@ -20,20 +22,31 @@ pitch = 0
 pv_inv = None
 def update_matrices():
   global pv_inv
-  #proj = np.array([[1/(a*math.tan(fov)), 0, 0, 0],
-  #                 [0, 1/(a*math.tan(fov)), 0, 0],
-  #                 [0, 0, -(far+near)/(far-near), -2*(far*near)/(far-near)],
-  #                 [0, 0, -1, 0]])
-  view_transform = np.array([[1, 0, 0],
-                             [0, 1, 0],
-                             [0, 0, 10]])
-  view_yaw =  np.array([[math.cos(yaw), -math.sin(yaw), 0],
-                        [math.sin(yaw), math.cos(yaw), 0],
-                        [0, 0, 1]])
-  view_pitch =  np.array([[1, 0, 0],
-                          [0, math.cos(-pitch), -math.sin(-pitch)],
-                          [0, math.sin(-pitch), math.cos(-pitch)]])
-  pv_inv = np.linalg.inv(view_pitch @ view_yaw @ view_transform)
+  #view_transform = np.array([[1, 0, 0],
+  #                           [0, 1, 0],
+  #                           [0, 0, 10]])
+  #view_yaw =  np.array([[math.cos(yaw), -math.sin(yaw), 0],
+  #                      [math.sin(yaw), math.cos(yaw), 0],
+  #                      [0, 0, 1]])
+  #view_pitch =  np.array([[1, 0, 0],
+  #                        [0, math.cos(-pitch), -math.sin(-pitch)],
+  #                        [0, math.sin(-pitch), math.cos(-pitch)]])
+  #pv_inv = np.linalg.inv(view_pitch @ view_yaw @ view_transform)
+  # ---
+  #view_transform = np.array([[1, 0, 0],
+  #                           [0, 1, 0],
+  #                           [0, 0, 0.1]])
+  #view_yaw =  np.array([[math.cos(yaw), -math.sin(yaw), 0],
+  #                      [math.sin(yaw), math.cos(yaw), 0],
+  #                      [0, 0, 1]])
+  #view_pitch =  np.array([[1, 0, 0],
+  #                        [0, math.cos(pitch), -math.sin(pitch)],
+  #                        [0, math.sin(pitch), math.cos(pitch)]])
+  #pv_inv = view_transform @ view_yaw @ view_pitch
+  # ---
+  pv_inv = np.array([[cos(yaw), -sin(yaw)*cos(pitch), sin(yaw)*sin(pitch)],
+                     [sin(yaw), cos(yaw)*cos(pitch), -cos(yaw)*sin(pitch)],
+                     [0, 0.1*sin(pitch), 0.1*cos(pitch)]])
 update_matrices()
 
 def color(x, y):
