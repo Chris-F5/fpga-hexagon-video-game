@@ -7,88 +7,41 @@ module hex_vga (
     output VGA_VS
 );
   reg [1:0] counter;
-  reg [3:0] this_red;
-  reg [3:0] this_green;
-  reg [3:0] this_blue;
 
-  wire [9:0] this_x;
-  wire [9:0] this_y;
-
-  // construct pixel colors in a pipeline.
-  reg signed [9:0] qd;  // Q5.4
-  reg signed [9:0] rd;
-  wire signed [9:0] sd;
-  assign sd = -qd - rd;
-  wire [(6+3):0] qd_offset;
-  wire [(6+3):0] rd_offset;
-  wire [(6+3):0] sd_offset;
-  assign qd_offset = qd + 8;
-  assign rd_offset = rd + 8;
-  assign sd_offset = sd + 8;
-  wire [5:0] qd_round;
-  wire [5:0] rd_round;
-  wire [5:0] sd_round;
-  assign qd_round = qd_offset[(6+3):4];
-  assign rd_round = rd_offset[(6+3):4];
-  assign sd_round = sd_offset[(6+3):4];
-  wire [2:0] qd_err;
-  wire [2:0] rd_err;
-  wire [2:0] sd_err;
-  assign qd_err = qd_offset[3] ? qd_offset[2:0] : 7 - qd_offset[2:0];
-  assign rd_err = rd_offset[3] ? rd_offset[2:0] : 7 - rd_offset[2:0];
-  assign sd_err = sd_offset[3] ? sd_offset[2:0] : 7 - sd_offset[2:0];
-
-  reg signed [5:0] q;
-  reg signed [5:0] r;
-  reg signed [5:0] s;
+  wire [9:0] screen_x;
+  wire [9:0] screen_y;
+  reg [31:0] plane_x;
+  reg [31:0] plane_y;
 
   reg [32*32:0] bitmap;
 
   vga my_vga (
       .clk(counter[1]),
-      .x(this_x),
-      .y(this_y),
+      .x(screen_x),
+      .y(screen_y),
       .VGA_HS(VGA_HS),
       .VGA_VS(VGA_VS)
   );
 
-  assign VGA_R = this_red;
-  assign VGA_G = this_green;
-  assign VGA_B = this_blue;
+  hex_plane my_hex_plane (
+      .clk(counter[1]),
+      .bitmap(bitmap),
+      .start_x(plane_x),
+      .start_y(plane_y),
+      .end_red(VGA_R),
+      .end_green(VGA_G),
+      .end_blue(VGA_B)
+  );
 
-  localparam pipe_len = 2;
-  localparam hex_size = 4;
   always @(posedge CLK100MHZ) begin
     counter <= counter + 1;
+  end
+
+  always @(posedge counter[1]) begin
     // PIPELINE STAGE 0
+    plane_x <= (({22'b0, screen_x} + 2) % 640) << 11;
+    plane_y <= (({22'b0, screen_y} + 2) % 640) << 11;
 
-    // 11 = 16*(2/3)
-    //  5 = 16*(1/3)
-    //  9 = 16*(sqrt(3)/3)
-    qd      <= ((this_x + pipe_len) * 11) >>> 4;
-    rd      <= ((this_x + pipe_len) * (-5) + (this_y) * (+9)) >>> 4;
-
-    // PIPELINE STAGE 1
-    if (qd_err > rd_err && qd_err > sd_err) begin
-      q <= -rd_round - sd_round;
-      r <= rd_round;
-      s <= sd_round;
-    end else if (rd_err > sd_err) begin
-      q <= qd_round;
-      r <= -qd_round - sd_round;
-      s <= sd_round;
-    end else begin
-      q <= qd_round;
-      r <= rd_round;
-      s <= -qd_round - rd_round;
-    end
-
-    // PIPELINE STAGE 2
-    //this_red <= q[0] ? 15 : 0;
-    //this_green <= r[0] ? 15 : 0;
-    this_red <= q[0] ? 15 : 0;
-    this_blue <= r[0] ? 15 : 0;
-    this_green <= bitmap[q*32+r] ? 15 : 0;
     bitmap[10*32+10] <= 1;
   end
 endmodule
