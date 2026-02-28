@@ -1,8 +1,10 @@
 module vga (
     input clk,  // this clock should be sent at 25MHz
-    output [3:0] VGA_R,
-    output [3:0] VGA_G,
-    output [3:0] VGA_B,
+    // output [3:0] VGA_R,
+    // output [3:0] VGA_G,
+    // output [3:0] VGA_B,
+    output [9:0] x,
+    output [9:0] y,
     output VGA_HS,
     output VGA_VS
 );
@@ -24,12 +26,15 @@ module vga (
   reg [9:0] h;
   reg [9:0] v;
 
-  assign VGA_HS = h >= hTpw;
-  assign VGA_VS = v >= vTpw;
+  assign VGA_HS = (h >= hTpw);
+  assign VGA_VS = (v >= vTpw);
 
-  assign VGA_R  = h[3:0];
-  assign VGA_G  = v[3:0];
-  assign VGA_B  = 4'hf;
+  // assign VGA_R  = h[3:0];
+  // assign VGA_G  = v[3:0];
+  // assign VGA_B  = 4'hf;
+
+  assign x = h - hTpw - hTbp;
+  assign y = v - vTpw - vTbp;
 
   always @(posedge clk) begin
     h <= (h + 1) % hTs;

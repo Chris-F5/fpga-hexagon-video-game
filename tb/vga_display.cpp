@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
     uint8_t prev_vs = 1;
 
     // Initialize inputs
-    dut->clk = 0;
+    dut->CLK100MHZ = 0;
     dut->eval();
 
     // Simulation loop
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
         // Run simulation until one frame is completed
         while (!frame_done && !quit) {
             // Clock high
-            dut->clk = 1;
+            dut->CLK100MHZ = 1;
             dut->eval();
 
             // Detect falling edges of Syncs
@@ -116,8 +116,20 @@ int main(int argc, char** argv) {
             prev_hs = dut->VGA_HS;
             prev_vs = dut->VGA_VS;
 
-            // Clock low
-            dut->clk = 0;
+            // Clock the 100Mhz clock to catch up with 25MHz
+            dut->CLK100MHZ = 0;
+            dut->eval();
+            dut->CLK100MHZ = 1;
+            dut->eval();
+            dut->CLK100MHZ = 0;
+            dut->eval();
+            dut->CLK100MHZ = 1;
+            dut->eval();
+            dut->CLK100MHZ = 0;
+            dut->eval();
+            dut->CLK100MHZ = 1;
+            dut->eval();
+            dut->CLK100MHZ = 0;
             dut->eval();
         }
 
