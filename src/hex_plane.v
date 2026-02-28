@@ -1,11 +1,11 @@
 module hex_plane (
     input clk,  // 2 pipeline stages
     input [32*32:0] bitmap,
-    input signed [31:0] start_x,  // Q16.16
-    input signed [31:0] start_y,  // Q16.16
-    output [3:0] end_red,
-    output [3:0] end_green,
-    output [3:0] end_blue
+    input signed [31:0] start_x,  // Q16.
+    input signed [31:0] start_y,  // Q16.
+    output reg [3:0] end_red,
+    output reg [3:0] end_green,
+    output reg [3:0] end_blue
 );
   /*
   reg signed  [31:0] qd;  // Q16.16
@@ -60,21 +60,12 @@ module hex_plane (
   reg signed [15:0] r;
   reg signed [15:0] s;
 
-  reg [3:0] red;
-  reg [3:0] green;
-  reg [3:0] blue;
-  assign end_red   = red;
-  assign end_green = green;
-  assign end_blue  = blue;
-
-
-
   always @(posedge clk) begin
     // PIPELINE STAGE 0
     // 43691 = 2**16 * (2/3)
     // 21845 = 2**16 * (1/3)
     // 37837 = 2**16 * (sqrt(3)/3)
-    qd <= (start_x * 43691) >>> 15;  // weird that 15 works, id expect 16.
+    qd <= (start_x * 43691) >>> 15;
     rd <= (start_x * (-21845) + start_y * 37837) >>> 15;
     /*
     qd <= ((start_x[9:0]) * 11) >>> 4;
@@ -98,9 +89,9 @@ module hex_plane (
     end
 
     // PIPELINE STAGE 2
-    red   <= q[0] ? 15 : 0;
-    blue  <= r[0] ? 15 : 0;
-    green <= s[0] ? 15 : 0;
+    end_red   <= q[0] ? 15 : 0;
+    end_blue  <= r[0] ? 15 : 0;
+    end_green <= s[0] ? 15 : 0;
     //end_green <= bitmap[q*32+r] ? 15 : 0;
   end
 endmodule

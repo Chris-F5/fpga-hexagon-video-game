@@ -10,8 +10,19 @@ module hex_vga (
 
   wire [9:0] screen_x;
   wire [9:0] screen_y;
-  reg [31:0] plane_x;
-  reg [31:0] plane_y;
+  reg signed [16:0] plane_x;
+  reg signed [16:0] plane_y;
+  reg signed [31:0] plane_x_dummy;
+  reg signed [31:0] plane_y_dummy;
+  wire [9:0] pipeline_front_screen_x;
+  wire [9:0] pipeline_front_screen_y;
+
+  reg [7:0] yaw = 1;
+  reg [7:0] pitch = 1;
+
+  // TODO: find the right look-ahead amount here.
+  assign pipeline_front_screen_x = (screen_x + 20) % 640;
+  assign pipeline_front_screen_y = (screen_y + 20) % 640;
 
   reg [32*32:0] bitmap;
 
@@ -23,11 +34,21 @@ module hex_vga (
       .VGA_VS(VGA_VS)
   );
 
+  projection my_proj (
+      .clk(counter[1]),  // TODO: clock at 100MHZ.
+      .screen_x(pipeline_front_screen_x),
+      .screen_y(pipeline_front_screen_y),
+      .yaw(yaw),
+      .pitch(pitch),
+      .plane_x(plane_x),
+      .plane_y(plane_y)
+  );
+
   hex_plane my_hex_plane (
       .clk(counter[1]),
       .bitmap(bitmap),
-      .start_x(plane_x),
-      .start_y(plane_y),
+      .start_x(plane_x_dummy),
+      .start_y(plane_y_dummy),
       .end_red(VGA_R),
       .end_green(VGA_G),
       .end_blue(VGA_B)
@@ -39,9 +60,14 @@ module hex_vga (
 
   always @(posedge counter[1]) begin
     // PIPELINE STAGE 0
-    plane_x <= (({22'b0, screen_x} + 2) % 640) << 11;
-    plane_y <= (({22'b0, screen_y} + 2) % 640) << 11;
+    //plane_x_dummy <= (({22'b0, screen_x} + 2) % 640) << 11;
+    //plane_y_dummy <= (({22'b0, screen_y} + 2) % 640) << 11;
+    plane_x_dummy <= ({{15{plane_x[16]}}, plane_x} + 360) << 8;
+    plane_y_dummy <= ({{15{plane_y[16]}}, plane_y} + 280) << 8;
 
     bitmap[10*32+10] <= 1;
+  end
+  always @(posedge VGA_VS) begin
+    yaw <= yaw + 1;
   end
 endmodule

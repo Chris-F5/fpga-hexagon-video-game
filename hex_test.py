@@ -44,9 +44,10 @@ def update_matrices():
   #                        [0, math.sin(pitch), math.cos(pitch)]])
   #pv_inv = view_transform @ view_yaw @ view_pitch
   # ---
+  h = 8
   pv_inv = np.array([[cos(yaw), -sin(yaw)*cos(pitch), sin(yaw)*sin(pitch)],
                      [sin(yaw), cos(yaw)*cos(pitch), -cos(yaw)*sin(pitch)],
-                     [0, 0.1*sin(pitch), 0.1*cos(pitch)]])
+                     [0, (1/h)*sin(pitch), (1/h)*cos(pitch)]])
 update_matrices()
 
 def color(x, y):
@@ -54,11 +55,15 @@ def color(x, y):
     #r = x * (-3 / (2 + sqrt(3))) + y * (-1) + 1 * (1 / (2 + sqrt(3)))
     #s = x * (6 / (2 + sqrt(3))) + y * (0) + 1 * (sqrt(3) / (2 + sqrt(3)))
 
+    def low_res_div(a, b):
+        bits = 16
+        b = round(b * (2**bits))/(2**bits)
+        return a / b
     sx = (x-size/2)/size
     sy = (y-size/2)/size
     plane_coords = pv_inv @ np.array([sx, sy, 1])
-    x = plane_coords[0] / plane_coords[2]
-    y = plane_coords[1] / plane_coords[2]
+    x = low_res_div(plane_coords[0], plane_coords[2])
+    y = low_res_div(plane_coords[1], plane_coords[2])
     if plane_coords[2] < 0:
         return np.array([0,0,0])
 
