@@ -88,7 +88,7 @@ module hex_vga (
       .end_green(plane_green),
       .end_blue(plane_blue)
   );
-  wire display_active = (screen_x >= 0 && screen_x < 640 && screen_y >= 0 && screen_y < 480) && display_now;
+  wire display_active = (screen_y >= 0 && screen_y < 480) && display_now;
   assign VGA_R = (display_active ? plane_red : 0);
   assign VGA_G = (display_active ? plane_green : 0);
   assign VGA_B = (display_active ? plane_blue : 0);
