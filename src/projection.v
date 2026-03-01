@@ -23,8 +23,8 @@ module projection (
   end
 
   localparam inv_h = 16;  // h = 8  (128/h)
-  localparam rot_d_0 = -1024 * 2;  // 1024 * 6;
-  localparam rot_d_1 = 1024 * 2;
+  localparam rot_d_0 = -8 * 2;  // 1024 * 6;
+  localparam rot_d_1 = 8 * 2;
   wire signed [31:0] matrix_11;  // Q2.14
   wire signed [31:0] matrix_12;
   wire signed [31:0] matrix_13;
@@ -35,11 +35,11 @@ module projection (
   wire signed [31:0] matrix_32;
   wire signed [31:0] matrix_33;
   assign matrix_11 = sin[yaw+64] * 128;
-  assign matrix_12 = -(sin[yaw] * sin[pitch+64]) - (((sin[yaw] * sin[pitch] * inv_h) >>> 14) * rot_d_1);
-  assign matrix_13 = (sin[yaw] * sin[pitch]) - (((sin[yaw] * sin[pitch+64] * inv_h) >>> 14) * rot_d_1);
+  assign matrix_12 = -(sin[yaw] * sin[pitch+64]) - (((sin[yaw] * sin[pitch] * inv_h) >>> 7) * rot_d_1);
+  assign matrix_13 = (sin[yaw] * sin[pitch]) - (((sin[yaw] * sin[pitch+64] * inv_h) >>> 7) * rot_d_1);
   assign matrix_21 = sin[yaw] * 128;
-  assign matrix_22 = sin[yaw+64] * sin[pitch+64] + (((sin[yaw+64]*sin[pitch]*inv_h) >>> 14 ) * rot_d_1) - (((sin[pitch]*inv_h) >>> 7) *rot_d_0);
-  assign matrix_23 = -(sin[yaw+64] * sin[pitch]) + (((sin[yaw+64]*sin[pitch+64]*inv_h) >>> 14 ) * rot_d_1) - (((sin[pitch+64]*inv_h) >>> 7 )*rot_d_0);
+  assign matrix_22 = sin[yaw+64] * sin[pitch+64] + (((sin[yaw+64]*sin[pitch]*inv_h) >>> 7 ) * rot_d_1) - (((sin[pitch]*inv_h) >>> 0) *rot_d_0);
+  assign matrix_23 = -(sin[yaw+64] * sin[pitch]) + (((sin[yaw+64]*sin[pitch+64]*inv_h) >>> 7 ) * rot_d_1) - (((sin[pitch+64]*inv_h) >>> 0 )*rot_d_0);
   assign matrix_31 = 0;
   assign matrix_32 = inv_h * sin[pitch];
   assign matrix_33 = inv_h * sin[pitch+64];

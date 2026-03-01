@@ -11,7 +11,7 @@ module hex_vga (
     output VGA_HS,
     output VGA_VS
 );
-  reg [1:0] counter;
+  reg [20:0] counter;
 
   wire [32*32:0] bitmap;
   wire [15:0] player_q;
@@ -29,6 +29,8 @@ module hex_vga (
   wire [9:0] pipeline_front_screen_y;
 
   reg [7:0] pitch = 40;
+  reg [7:0] yaw = 0;
+  wire [7:0] target_yaw = 8'd43 * {5'b0, player_dir};
 
   wire [3:0] plane_red;
   wire [3:0] plane_green;
@@ -66,7 +68,7 @@ module hex_vga (
       .clk(counter[1]),  // TODO: clock at 100MHZ.
       .screen_x(pipeline_front_screen_x),
       .screen_y(pipeline_front_screen_y),
-      .yaw(8'd43 * {5'b0, player_dir}), // Rotate screen by 1/6 (approx 43 units out of 256) per direction
+      .yaw(yaw),  // Rotate screen by 1/6 (approx 43 units out of 256) per direction
       .pitch(pitch),
       .plane_x(plane_x),
       .plane_y(plane_y),
@@ -92,6 +94,12 @@ module hex_vga (
 
   always @(posedge CLK100MHZ) begin
     counter <= counter + 1;
+    // if (counter[8]) yaw <= (yaw == target_yaw) ? yaw : yaw + 1;
+  end
+  wire [7:0] diff = target_yaw - yaw;
+  always @(negedge VGA_VS) begin
+    if (yaw != target_yaw)
+      yaw <= diff[7] ? yaw - 1 : yaw + 1;
   end
 
   always @(posedge counter[1]) begin
