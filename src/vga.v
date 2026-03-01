@@ -3,10 +3,11 @@ module vga (
     // output [3:0] VGA_R,
     // output [3:0] VGA_G,
     // output [3:0] VGA_B,
-    output [9:0] x,
-    output [9:0] y,
+    output signed [9:0] x,
+    output signed [9:0] y,
     output VGA_HS,
-    output VGA_VS
+    output VGA_VS,
+    output reg display_now
 );
   // 640x480
   // These parameters correspond to the diagram on
@@ -39,5 +40,7 @@ module vga (
   always @(posedge clk) begin
     h <= (h + 1) % hTs;
     v <= (h == hTs - 1) ? (v + 1) % vTs : v;
+    display_now <= (h > hTpw + hTbp && h < hTpw + hTbp + hTdisp)
+                && (v > vTpw + vTbp && v < vTpw + vTbp + vTdisp);
   end
 endmodule

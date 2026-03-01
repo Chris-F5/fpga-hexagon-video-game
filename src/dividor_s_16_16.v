@@ -34,10 +34,40 @@ module dividor_s_16_16 (
   // Sign pipeline to match the 31 stages of division
   reg sign_pipe[30:0];
   always @(posedge clk) begin
-    sign_pipe[0] <= sign_out;
-    for (integer i = 1; i <= 30; i = i + 1) begin
-      sign_pipe[i] <= sign_pipe[i-1];
-    end
+    sign_pipe[0]  <= sign_out;
+    //for (integer i = 1; i <= 30; i = i + 1) begin
+    //  sign_pipe[i] <= sign_pipe[i-1];
+    //end
+    sign_pipe[1]  <= sign_pipe[1-1];
+    sign_pipe[2]  <= sign_pipe[2-1];
+    sign_pipe[3]  <= sign_pipe[3-1];
+    sign_pipe[4]  <= sign_pipe[4-1];
+    sign_pipe[5]  <= sign_pipe[5-1];
+    sign_pipe[6]  <= sign_pipe[6-1];
+    sign_pipe[7]  <= sign_pipe[7-1];
+    sign_pipe[8]  <= sign_pipe[8-1];
+    sign_pipe[9]  <= sign_pipe[9-1];
+    sign_pipe[10] <= sign_pipe[10-1];
+    sign_pipe[11] <= sign_pipe[11-1];
+    sign_pipe[12] <= sign_pipe[12-1];
+    sign_pipe[13] <= sign_pipe[13-1];
+    sign_pipe[14] <= sign_pipe[14-1];
+    sign_pipe[15] <= sign_pipe[15-1];
+    sign_pipe[16] <= sign_pipe[16-1];
+    sign_pipe[17] <= sign_pipe[17-1];
+    sign_pipe[18] <= sign_pipe[18-1];
+    sign_pipe[19] <= sign_pipe[19-1];
+    sign_pipe[20] <= sign_pipe[20-1];
+    sign_pipe[21] <= sign_pipe[21-1];
+    sign_pipe[22] <= sign_pipe[22-1];
+    sign_pipe[23] <= sign_pipe[23-1];
+    sign_pipe[24] <= sign_pipe[24-1];
+    sign_pipe[25] <= sign_pipe[25-1];
+    sign_pipe[26] <= sign_pipe[26-1];
+    sign_pipe[27] <= sign_pipe[27-1];
+    sign_pipe[28] <= sign_pipe[28-1];
+    sign_pipe[29] <= sign_pipe[29-1];
+    sign_pipe[30] <= sign_pipe[30-1];
   end
 
   // Inter-stage registers

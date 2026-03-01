@@ -19,10 +19,10 @@ module hex_vga (
   wire [15:0] player_q;
   wire [15:0] player_r;
 
-  wire [9:0] screen_x;
-  wire [9:0] screen_y;
-  reg signed [16:0] plane_x;  // these should probably be wires
-  reg signed [16:0] plane_y;  // these should probably be wires
+  wire signed [9:0] screen_x;
+  wire signed [9:0] screen_y;
+  wire signed [16:0] plane_x;  // these should probably be wires
+  wire signed [16:0] plane_y;  // these should probably be wires
   wire projection_valid;
   reg signed [31:0] plane_x_dummy;
   reg signed [31:0] plane_y_dummy;
@@ -32,8 +32,12 @@ module hex_vga (
   reg [7:0] yaw = 128;
   reg [7:0] pitch = 40;
 
-  // TODO: find the right look-ahead amount here.
-  assign pipeline_front_screen_x = (screen_x + 20) % 640;
+  wire [3:0] plane_red;
+  wire [3:0] plane_green;
+  wire [3:0] plane_blue;
+
+  // TODO: find the right look-ahead amount here. (I think 36)
+  assign pipeline_front_screen_x = (screen_x + 36) % 640;
   assign pipeline_front_screen_y = screen_y % 480;
 
   game_logic my_game_logic (
@@ -50,14 +54,17 @@ module hex_vga (
       .player_r(player_r[4:0])
   );
 
+  wire display_now;
   vga my_vga (
       .clk(counter[1]),
       .x(screen_x),
       .y(screen_y),
       .VGA_HS(VGA_HS),
-      .VGA_VS(VGA_VS)
+      .VGA_VS(VGA_VS),
+      .display_now(display_now)
   );
 
+  // 33 pipeline stages
   projection my_proj (
       .clk(counter[1]),  // TODO: clock at 100MHZ.
       .screen_x(pipeline_front_screen_x),
@@ -69,6 +76,7 @@ module hex_vga (
       .valid(projection_valid)
   );
 
+  // 2 pipeline stages
   hex_plane my_hex_plane (
       .clk(counter[1]),
       .bitmap(bitmap),
@@ -76,17 +84,23 @@ module hex_vga (
       .player_r(player_r),
       .start_x(projection_valid ? plane_x_dummy : 0),
       .start_y(projection_valid ? plane_y_dummy : 0),
-      .end_red(VGA_R),
-      .end_green(VGA_G),
-      .end_blue(VGA_B)
+      .end_red(plane_red),
+      .end_green(plane_green),
+      .end_blue(plane_blue)
   );
+  wire display_active = (screen_x >= 0 && screen_x < 640 && screen_y >= 0 && screen_y < 480) && display_now;
+  assign VGA_R = (display_active ? plane_red : 0);
+  assign VGA_G = (display_active ? plane_green : 0);
+  assign VGA_B = (display_active ? plane_blue : 0);
 
   always @(posedge CLK100MHZ) begin
     counter <= counter + 1;
   end
 
   always @(posedge counter[1]) begin
-    // PIPELINE STAGE 0
+
+    // 1 intermediate pipeline stage.
+
     //plane_x_dummy <= (({22'b0, screen_x} + 2) % 640) << 11;
     //plane_y_dummy <= (({22'b0, screen_y} + 2) % 480) << 11;
     plane_x_dummy <= ({{15{plane_x[16]}}, plane_x} + 360) << 8;

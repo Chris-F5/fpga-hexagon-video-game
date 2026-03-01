@@ -8,7 +8,7 @@ module projection (
     output wire signed [16:0] plane_y,
     output reg valid
 );
-  reg signed [7:0] sin[255];
+  reg signed [7:0] sin[255:0];
 
   // generate sin LUT.
   integer i;
@@ -68,6 +68,7 @@ module projection (
   );
 
   reg valid_pipe[31:0];
+  integer pipe_idx;
 
   always @(posedge clk) begin
     // STAGE 0
@@ -83,8 +84,8 @@ module projection (
     // STAGES 2-33
     // divisor is operating. we must carry the validity condition.
     valid_pipe[0] <= (plane_w > 0);
-    for (integer i = 1; i < 32; i = i + 1) begin
-      valid_pipe[i] <= valid_pipe[i-1];
+    for (pipe_idx = 1; pipe_idx < 32; pipe_idx = pipe_idx + 1) begin
+      valid_pipe[pipe_idx] <= valid_pipe[pipe_idx-1];
     end
     valid <= valid_pipe[31];
   end
