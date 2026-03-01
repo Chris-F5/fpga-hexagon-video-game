@@ -51,21 +51,43 @@ int main(int argc, char** argv) {
     dut->trace(tfp, 99);          // Trace 99 levels of hierarchy
     tfp->open("projection.vcd");  // Open the VCD file
 
-    // We will simulate for 100 clock cycles (200 sim times)
-    for (int sim_time = 0; sim_time < 200; sim_time++) {
+    // Evaluate the model once so initial blocks execute!
+    dut->eval();
+
+    // Print the internal sine table at the start of simulation
+    std::cout << "--- Sine Lookup Table ---" << std::endl;
+    for (int i = 0; i < 256; i++) {
+        int8_t val = (int8_t)dut->rootp->projection__DOT__sin[i];
+        std::cout << "sin[" << std::setw(3) << i << "] = " << std::setw(4) << (int)val;
+        if ((i + 1) % 8 == 0) std::cout << std::endl;
+        else std::cout << "  |  ";
+    }
+    std::cout << "-------------------------" << std::endl;
+
+    // We will simulate for 600 clock cycles (1200 sim times) to fit all 10 steps
+    for (int sim_time = 0; sim_time < 1200; sim_time++) {
         dut->clk = sim_time % 2;  // Toggle clock
 
-        // Provide test inputs
-        if (sim_time == 0) {
+        if (sim_time % 2 == 0) {
+            int cycle = sim_time / 2;
+            
+            // Fixed screen coordinate
             dut->screen_x = 325;
-            dut->screen_y = 240;
-            dut->yaw = 0;
-            dut->pitch = 0;
-        } else if (sim_time == 20) { // 10 clock cycles in
-            dut->screen_x = 400;
-            dut->screen_y = 300;
-            dut->yaw = 64; // 90 degrees in 8-bit circle
-            dut->pitch = 32; // 45 degrees
+            dut->screen_y = 245;
+
+            // Slowly increase yaw, then pitch
+            if (cycle == 0)   { dut->yaw = 0; dut->pitch = 0; }
+            if (cycle == 50)  { dut->yaw = 1; dut->pitch = 0; }
+            if (cycle == 100) { dut->yaw = 2; dut->pitch = 0; }
+            if (cycle == 150) { dut->yaw = 3; dut->pitch = 0; }
+            if (cycle == 200) { dut->yaw = 4; dut->pitch = 0; }
+            if (cycle == 250) { dut->yaw = 5; dut->pitch = 0; }
+            
+            if (cycle == 300) { dut->yaw = 0; dut->pitch = 1; }
+            if (cycle == 350) { dut->yaw = 0; dut->pitch = 2; }
+            if (cycle == 400) { dut->yaw = 0; dut->pitch = 3; }
+            if (cycle == 450) { dut->yaw = 0; dut->pitch = 4; }
+            if (cycle == 500) { dut->yaw = 0; dut->pitch = 5; }
         }
 
         dut->eval();              // Evaluate model
@@ -76,16 +98,12 @@ int main(int argc, char** argv) {
             int cycle = sim_time / 2;
             
             // Print matrix when inputs change
-            if (cycle == 1 || cycle == 11) {
+            if (cycle % 50 == 1 && cycle <= 501) {
                 print_matrix(dut, cycle);
             }
 
-            if (cycle == 20) { // Assuming 18 cycles for division + 2 stages
-                int32_t signed_plane_x = ((int32_t)(dut->plane_x << 15)) >> 15;
-                int32_t signed_plane_y = ((int32_t)(dut->plane_y << 15)) >> 15;
-                std::cout << "Cycle " << cycle << " -> plane_x=" << signed_plane_x << ", plane_y=" << signed_plane_y << std::endl;
-            }
-            if (cycle == 30) { // 10 cycles input delay + 20 cycles pipeline
+            // Print the resulting projection after the pipeline delay
+            if (cycle % 50 == 34 && cycle <= 534) { 
                 int32_t signed_plane_x = ((int32_t)(dut->plane_x << 15)) >> 15;
                 int32_t signed_plane_y = ((int32_t)(dut->plane_y << 15)) >> 15;
                 std::cout << "Cycle " << cycle << " -> plane_x=" << signed_plane_x << ", plane_y=" << signed_plane_y << std::endl;

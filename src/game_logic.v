@@ -11,34 +11,74 @@ module game_logic (
     output reg [4:0] player_q,
     output reg [4:0] player_r
 );
-  // The user inputs are passed to this module in the following way: when clock
-  // is on the rising edge, if one of `key_*` are high, then it
-  // means the user has just pressed that movement key. I.e. we dont know if
-  // they are holding down the key, we only know if they have just pressed it
-  // this clock cycle.
-  // The input keys available to the module are arranged in a hexagonal patter
-  // on the starndard qwerty keyboard. Each key corresponds to moving in one
-  // of the 6 directions from one hexagon to an adjacent.
 
-  // `bitmap` is indexed by the `q` and `r coordinates of hexagonal "cube"
-  // coordinates described here: https://www.redblobgames.com/grids/hexagons/#pixel-to-hex
-  // E.g. a hexagon is occupied iff `bitmap[q*32+r] == 1` for (q,r,s) where q+r+s=0.
+  reg [32*32:0] init_bitmap;
+  integer i, j;
+  reg signed [6:0] q_shift, r_shift, s_shift;
+  initial begin
+      init_bitmap = ~0; // all 1s
+      for (i = 0; i < 32; i = i + 1) begin
+          for (j = 0; j < 32; j = j + 1) begin
+              q_shift = i[6:0] - 7'd15;
+              r_shift = j[6:0] - 7'd15;
+              s_shift = - (q_shift + r_shift);
+              if ((q_shift <= 3 && q_shift >= -3) &&
+                  (r_shift <= 3 && r_shift >= -3) &&
+                  (s_shift <= 3 && s_shift >= -3)) begin
+                  init_bitmap[i * 32 + j] = 0;
+              end
+          end
+      end
+      // add a few walls to make it interesting
+      init_bitmap[14 * 32 + 15] = 1;
+      init_bitmap[16 * 32 + 15] = 1;
+  end
 
-  // `player_q` and `player_r` represent the player q and r coordinates where
-  // (q,r,s) are its full coordinates and q+r+s=0.
+  wire [4:0] next_q_y = player_q;
+  wire [4:0] next_r_y = player_r - 1;
 
-  // Your job is to write the code for the game logic of the classic puzzle game
-  // where the player moves on a grid, and when they leave a tile, that tile
-  // becomes occupied (set in `bitmap`) and can no longer be visited again. The
-  // players goal is to visit all locations on the grid. But the twist is that
-  // we will be on a hexagonal grid instead of a square grid.
+  wire [4:0] next_q_u = player_q + 1;
+  wire [4:0] next_r_u = player_r - 1;
 
+  wire [4:0] next_q_k = player_q + 1;
+  wire [4:0] next_r_k = player_r;
 
-  // On the rst signal, set the player to an initial location and set the puzzles
-  // initial configuration by using the `bitmap` (i.e. the starting walls).
+  wire [4:0] next_q_m = player_q;
+  wire [4:0] next_r_m = player_r + 1;
 
-  // On clk, if any of the keys are pressed move the player in that direction
-  // if the new tile is not set in bitmap.
-  // When the player leaves a tile, mark that tile in the bitmap.
+  wire [4:0] next_q_n = player_q - 1;
+  wire [4:0] next_r_n = player_r + 1;
+
+  wire [4:0] next_q_h = player_q - 1;
+  wire [4:0] next_r_h = player_r;
+
+  reg [4:0] try_q, try_r;
+  reg move;
+
+  always @(*) begin
+      try_q = player_q;
+      try_r = player_r;
+      move = 0;
+      if (key_y) begin try_q = next_q_y; try_r = next_r_y; move = 1; end
+      else if (key_u) begin try_q = next_q_u; try_r = next_r_u; move = 1; end
+      else if (key_k) begin try_q = next_q_k; try_r = next_r_k; move = 1; end
+      else if (key_m) begin try_q = next_q_m; try_r = next_r_m; move = 1; end
+      else if (key_n) begin try_q = next_q_n; try_r = next_r_n; move = 1; end
+      else if (key_h) begin try_q = next_q_h; try_r = next_r_h; move = 1; end
+  end
+
+  always @(posedge clk) begin
+      if (rst) begin
+          player_q <= 15;
+          player_r <= 15;
+          bitmap <= init_bitmap;
+      end else begin
+          if (move && bitmap[try_q * 32 + try_r] == 0) begin
+              player_q <= try_q;
+              player_r <= try_r;
+              bitmap[player_q * 32 + player_r] <= 1;
+          end
+      end
+  end
 
 endmodule

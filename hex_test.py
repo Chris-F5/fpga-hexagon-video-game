@@ -18,7 +18,7 @@ fov = 90
 near = 1
 far = 10
 yaw = math.pi * 2 * 60/360
-pitch = 0
+pitch = math.pi * 2 / 128
 pv_inv = None
 def update_matrices():
   global pv_inv
@@ -64,6 +64,7 @@ def color(x, y):
     plane_coords = pv_inv @ np.array([sx, sy, 1])
     x = low_res_div(plane_coords[0], plane_coords[2])
     y = low_res_div(plane_coords[1], plane_coords[2])
+    print(x, y)
     if plane_coords[2] < 0:
         return np.array([0,0,0])
 
@@ -118,7 +119,7 @@ def draw(screen):
     screen.blit(surface, (0, 0))
 
     yaw += math.pi * 2 * 2 / 360
-    pitch += math.pi * 2 * 5 / 360
+    #pitch += math.pi * 2 * 5 / 360
     update_matrices()
 
 

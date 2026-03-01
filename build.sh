@@ -19,3 +19,9 @@ verilator --cc src/hex_vga.v src/projection.v src/dividor_s_16_16.v src/hex_plan
   --prefix vga_display --Mdir obj \
   -LDFLAGS "$(pkg-config --libs sdl2)" -CFLAGS "$(pkg-config --cflags sdl2)"
 make -j -C obj -f vga_display.mk vga_display
+
+# game_logic_tb
+verilator --cc src/game_logic.v --exe tb/game_logic_tb.cpp \
+  --prefix game_logic_tb --Mdir obj \
+  -LDFLAGS "$(pkg-config --libs sdl2)" -CFLAGS "$(pkg-config --cflags sdl2)"
+make -j -C obj -f game_logic_tb.mk game_logic_tb
