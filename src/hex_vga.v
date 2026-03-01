@@ -1,5 +1,6 @@
 module hex_vga (
     input CLK100MHZ,
+    input key_r,
     input key_y,
     input key_u,
     input key_k,
@@ -15,8 +16,8 @@ module hex_vga (
   reg [1:0] counter;
 
   wire [32*32:0] bitmap;
-  wire [4:0] player_q;
-  wire [4:0] player_r;
+  wire [15:0] player_q;
+  wire [15:0] player_r;
 
   wire [9:0] screen_x;
   wire [9:0] screen_y;
@@ -36,17 +37,17 @@ module hex_vga (
   assign pipeline_front_screen_y = screen_y % 480;
 
   game_logic my_game_logic (
-      .clk(counter[1]),
-      .rst(VGA_HS),
-      .key_y(key_y),
-      .key_u(key_u),
-      .key_k(key_k),
-      .key_m(key_m),
-      .key_n(key_n),
-      .key_h(key_h),
+      .clk(CLK100MHZ),
+      .rst(key_r),
+      .key_y(key_m),
+      .key_u(key_n),  // lol
+      .key_k(key_h),
+      .key_m(key_y),
+      .key_n(key_u),
+      .key_h(key_k),
       .bitmap(bitmap),
-      .player_q(player_q),
-      .player_r(player_r)
+      .player_q(player_q[4:0]),
+      .player_r(player_r[4:0])
   );
 
   vga my_vga (
@@ -71,6 +72,8 @@ module hex_vga (
   hex_plane my_hex_plane (
       .clk(counter[1]),
       .bitmap(bitmap),
+      .player_q(player_q),
+      .player_r(player_r),
       .start_x(projection_valid ? plane_x_dummy : 0),
       .start_y(projection_valid ? plane_y_dummy : 0),
       .end_red(VGA_R),

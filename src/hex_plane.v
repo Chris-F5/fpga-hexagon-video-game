@@ -1,6 +1,8 @@
 module hex_plane (
     input clk,  // 2 pipeline stages
     input [32*32:0] bitmap,
+    input [15:0] player_q,
+    input [15:0] player_r,
     input signed [31:0] start_x,  // Q16.
     input signed [31:0] start_y,  // Q16.
     output reg [3:0] end_red,
@@ -81,9 +83,9 @@ module hex_plane (
     // (15,15,12) (13, 11, 10) (9, 8, 8) (11, 11, 12)
 
     // PIPELINE STAGE 2
-    end_red   <= distance_1 | bitmap[q*32+r] ? (q[0] ? 9 : 11) : (0);
-    end_blue  <= distance_1 | bitmap[q*32+r] ? (q[0] ? 8 : 11) : (0);
-    end_green <= distance_1 | bitmap[q*32+r] ? (r[0] ? 8 : 12) : (0);
+    end_red   <= distance_1 | bitmap[q*32+r] ? (q[0] ? 9 : 11) : (q == player_q && r == player_r ? 15 : 0);
+    end_blue  <= distance_1 | bitmap[q*32+r] ? (q[0] ? 8 : 11) : (q == player_q && r == player_r ? 15 : 0);
+    end_green <= distance_1 | bitmap[q*32+r] ? (r[0] ? 8 : 12) : (q == player_q && r == player_r ? 15 : 0);
     //end_blue  <= r[0] ? 15 : 0;
     //end_blue  <= (!distance_1 && bitmap[q*32+r]) ? 15 : 0;
     //end_green <= distance_1 ? 15 : 0;

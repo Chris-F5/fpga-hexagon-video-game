@@ -55,24 +55,22 @@ module game_logic (
   reg [4:0] try_q, try_r;
   reg move;
 
-  always @(*) begin
-      try_q = player_q;
-      try_r = player_r;
-      move = 0;
-      if (key_y) begin try_q = next_q_y; try_r = next_r_y; move = 1; end
-      else if (key_u) begin try_q = next_q_u; try_r = next_r_u; move = 1; end
-      else if (key_k) begin try_q = next_q_k; try_r = next_r_k; move = 1; end
-      else if (key_m) begin try_q = next_q_m; try_r = next_r_m; move = 1; end
-      else if (key_n) begin try_q = next_q_n; try_r = next_r_n; move = 1; end
-      else if (key_h) begin try_q = next_q_h; try_r = next_r_h; move = 1; end
-  end
-
   always @(posedge clk) begin
       if (rst) begin
           player_q <= 15;
           player_r <= 15;
           bitmap <= init_bitmap;
       end else begin
+          try_q = player_q;
+          try_r = player_r;
+          move = 0;
+          if (key_y) begin try_q = next_q_y; try_r = next_r_y; move = 1; end
+          else if (key_u) begin try_q = next_q_u; try_r = next_r_u; move = 1; end
+          else if (key_k) begin try_q = next_q_k; try_r = next_r_k; move = 1; end
+          else if (key_m) begin try_q = next_q_m; try_r = next_r_m; move = 1; end
+          else if (key_n) begin try_q = next_q_n; try_r = next_r_n; move = 1; end
+          else if (key_h) begin try_q = next_q_h; try_r = next_r_h; move = 1; end
+
           if (move && bitmap[try_q * 32 + try_r] == 0) begin
               player_q <= try_q;
               player_r <= try_r;
