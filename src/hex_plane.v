@@ -83,9 +83,9 @@ module hex_plane (
     // (15,15,12) (13, 11, 10) (9, 8, 8) (11, 11, 12)
 
     // PIPELINE STAGE 2
-    end_red   <= distance_1 | bitmap[q*32+r] ? (q[0] ? 9 : 11) : (q == player_q && r == player_r ? 15 : 0);
-    end_blue  <= distance_1 | bitmap[q*32+r] ? (q[0] ? 8 : 11) : (q == player_q && r == player_r ? 15 : 0);
-    end_green <= distance_1 | bitmap[q*32+r] ? (r[0] ? 8 : 12) : (q == player_q && r == player_r ? 15 : 0);
+    end_red   <= distance_1 | bitmap[q*32+r] ? (q[0] ? 8 : 10) : (q == player_q && r == player_r ? 15 : 0);
+    end_blue  <= distance_1 | bitmap[q*32+r] ? (q[0] ? 14 : 15) : (q == player_q && r == player_r ? 3 : 0);
+    end_green <= distance_1 | bitmap[q*32+r] ? (r[0] ? 7 : 10) : (q == player_q && r == player_r ? 2 : 0);
     //end_blue  <= r[0] ? 15 : 0;
     //end_blue  <= (!distance_1 && bitmap[q*32+r]) ? 15 : 0;
     //end_green <= distance_1 ? 15 : 0;

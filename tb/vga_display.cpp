@@ -60,22 +60,18 @@ int main(int argc, char** argv) {
     uint8_t prev_vs = 1;
 
     bool key_r_pressed = false;
-    bool key_y_pressed = false;
-    bool key_u_pressed = false;
-    bool key_k_pressed = false;
-    bool key_m_pressed = false;
-    bool key_n_pressed = false;
-    bool key_h_pressed = false;
+    bool key_w_pressed = false;
+    bool key_a_pressed = false;
+    bool key_s_pressed = false;
+    bool key_d_pressed = false;
 
     // Initialize inputs
     dut->CLK100MHZ = 0;
     dut->key_r = 0;
-    dut->key_y = 0;
-    dut->key_u = 0;
-    dut->key_k = 0;
-    dut->key_m = 0;
-    dut->key_n = 0;
-    dut->key_h = 0;
+    dut->key_w = 0;
+    dut->key_a = 0;
+    dut->key_s = 0;
+    dut->key_d = 0;
     dut->eval();
 
     // Simulation loop
@@ -87,12 +83,11 @@ int main(int argc, char** argv) {
             } else if (e.type == SDL_KEYDOWN && !e.key.repeat) {
                 switch (e.key.keysym.sym) {
                     case SDLK_r: key_r_pressed = true; break;
-                    case SDLK_y: key_y_pressed = true; break;
-                    case SDLK_u: key_u_pressed = true; break;
-                    case SDLK_k: key_k_pressed = true; break;
-                    case SDLK_m: key_m_pressed = true; break;
-                    case SDLK_n: key_n_pressed = true; break;
-                    case SDLK_h: key_h_pressed = true; break;
+                    case SDLK_w: key_w_pressed = true; break;
+                    case SDLK_a: key_a_pressed = true; break;
+                    case SDLK_s: key_s_pressed = true; break;
+                    case SDLK_d: key_d_pressed = true; break;
+                    case SDLK_b: key_s_pressed = true; break;
                 }
             }
         }
@@ -103,32 +98,26 @@ int main(int argc, char** argv) {
         while (!frame_done && !quit) {
             
             dut->key_r = key_r_pressed ? 1 : 0;
-            dut->key_y = key_y_pressed ? 1 : 0;
-            dut->key_u = key_u_pressed ? 1 : 0;
-            dut->key_k = key_k_pressed ? 1 : 0;
-            dut->key_m = key_m_pressed ? 1 : 0;
-            dut->key_n = key_n_pressed ? 1 : 0;
-            dut->key_h = key_h_pressed ? 1 : 0;
+            dut->key_w = key_w_pressed ? 1 : 0;
+            dut->key_a = key_a_pressed ? 1 : 0;
+            dut->key_s = key_s_pressed ? 1 : 0;
+            dut->key_d = key_d_pressed ? 1 : 0;
             
             // Clock high
             dut->CLK100MHZ = 1;
             dut->eval();
             
             key_r_pressed = false;
-            key_y_pressed = false;
-            key_u_pressed = false;
-            key_k_pressed = false;
-            key_m_pressed = false;
-            key_n_pressed = false;
-            key_h_pressed = false;
+            key_w_pressed = false;
+            key_a_pressed = false;
+            key_s_pressed = false;
+            key_d_pressed = false;
             
             dut->key_r = 0;
-            dut->key_y = 0;
-            dut->key_u = 0;
-            dut->key_k = 0;
-            dut->key_m = 0;
-            dut->key_n = 0;
-            dut->key_h = 0;
+            dut->key_w = 0;
+            dut->key_a = 0;
+            dut->key_s = 0;
+            dut->key_d = 0;
 
             // Detect falling edges of Syncs
             bool hs_falling = (prev_hs == 1 && dut->VGA_HS == 0);

@@ -37,10 +37,11 @@ def cosi(theta):
 def update_matrices():
     global pv_inv
     inv_h = 16
+    d = 10
     pv_inv = np.array(
         [
-            [127 * cos8(yaw), -sin8(yaw) * cos8(pitch), sin8(yaw) * sin8(pitch)],
-            [127 * sin8(yaw), cos8(yaw) * cos8(pitch), -cos8(yaw) * sin8(pitch)],
+            [127 * cos8(yaw), -sin8(yaw) * cos8(pitch) -sin8(yaw)*sin8(pitch)*inv_h*d, sin8(yaw) * sin8(pitch) + -sin(yaw)*cos(pitch)*inv_h*d],
+            [127 * sin8(yaw), cos8(yaw) * cos8(pitch) + cos8(yaw)*sin8(pitch)*inv_h*d - sin8(pitch)*inv_h*d, -cos8(yaw) * sin8(pitch) + cos8(yaw)*cos8(pitch)*inv_h*d - cos8(pitch)*inv_h*d],
             [0, inv_h * sin8(pitch), inv_h * cos8(pitch)],
         ], dtype=np.int32
     )

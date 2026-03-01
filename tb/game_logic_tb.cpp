@@ -4,11 +4,11 @@
 #include "game_logic_tb.h"
 #include "verilated.h"
 
-void draw_hex(SDL_Renderer* renderer, float x, float y, float size, bool is_player, bool is_occupied) {
+void draw_hex(SDL_Renderer* renderer, float x, float y, float size, bool is_player, bool is_occupied, float rotation) {
     SDL_Point points[7];
     for (int i = 0; i <= 6; ++i) {
         float angle_deg = 60 * i - 30;
-        float angle_rad = M_PI / 180 * angle_deg;
+        float angle_rad = M_PI / 180 * angle_deg + rotation;
         points[i].x = x + size * cos(angle_rad);
         points[i].y = y + size * sin(angle_rad);
     }
@@ -71,31 +71,28 @@ int main(int argc, char** argv) {
 
     while (!quit) {
         // Reset keys for this cycle
-        dut->key_y = 0;
-        dut->key_u = 0;
-        dut->key_k = 0;
-        dut->key_m = 0;
-        dut->key_n = 0;
-        dut->key_h = 0;
+        dut->key_w = 0;
+        dut->key_a = 0;
+        dut->key_s = 0;
+        dut->key_d = 0;
 
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
                 quit = true;
             } else if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
-                    case SDLK_y: dut->key_y = 1; break;
-                    case SDLK_u: dut->key_u = 1; break;
-                    case SDLK_k: dut->key_k = 1; break;
-                    case SDLK_m: dut->key_m = 1; break;
-                    case SDLK_n: dut->key_n = 1; break;
-                    case SDLK_h: dut->key_h = 1; break;
+                    case SDLK_w: dut->key_w = 1; break;
+                    case SDLK_a: dut->key_a = 1; break;
+                    case SDLK_s: dut->key_s = 1; break;
+                    case SDLK_d: dut->key_d = 1; break;
+                    case SDLK_b: dut->key_s = 1; break; // W/B backwards fallback
                     case SDLK_ESCAPE: quit = true; break;
                 }
             }
         }
 
         // Clock cycle if any key is pressed to simulate edge
-        if (dut->key_y || dut->key_u || dut->key_k || dut->key_m || dut->key_n || dut->key_h) {
+        if (dut->key_w || dut->key_a || dut->key_s || dut->key_d) {
             dut->clk = 0;
             dut->eval();
             dut->clk = 1;
@@ -105,6 +102,8 @@ int main(int argc, char** argv) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
+        float rotation = - (dut->player_dir * M_PI / 3.0f) + (M_PI / 6.0f); // Make forward face up
+        
         // Render the board
         for (int q = 0; q < 32; ++q) {
             for (int r = 0; r < 32; ++r) {
@@ -123,10 +122,16 @@ int main(int argc, char** argv) {
                 bool is_occupied = (dut->bitmap[word] & (1U << bit)) != 0;
                 bool is_player = (dut->player_q == q && dut->player_r == r);
                 
-                float x = OFFSET_X + HEX_SIZE * sqrt(3.0f) * (q_centered + r_centered / 2.0f);
-                float y = OFFSET_Y + HEX_SIZE * 3.0f / 2.0f * r_centered;
+                float cx = HEX_SIZE * sqrt(3.0f) * (q_centered + r_centered / 2.0f);
+                float cy = HEX_SIZE * 3.0f / 2.0f * r_centered;
                 
-                draw_hex(renderer, x, y, HEX_SIZE, is_player, is_occupied);
+                float rx = cx * cos(rotation) - cy * sin(rotation);
+                float ry = cx * sin(rotation) + cy * cos(rotation);
+
+                float x = OFFSET_X + rx;
+                float y = OFFSET_Y + ry;
+                
+                draw_hex(renderer, x, y, HEX_SIZE, is_player, is_occupied, rotation);
             }
         }
 
