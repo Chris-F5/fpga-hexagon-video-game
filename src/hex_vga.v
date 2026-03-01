@@ -1,5 +1,11 @@
 module hex_vga (
     input CLK100MHZ,
+    input key_y,
+    input key_u,
+    input key_k,
+    input key_m,
+    input key_n,
+    input key_h,
     output [3:0] VGA_R,
     output [3:0] VGA_G,
     output [3:0] VGA_B,
@@ -7,6 +13,10 @@ module hex_vga (
     output VGA_VS
 );
   reg [1:0] counter;
+
+  wire [32*32:0] bitmap;
+  wire [4:0] player_q;
+  wire [4:0] player_r;
 
   wire [9:0] screen_x;
   wire [9:0] screen_y;
@@ -18,14 +28,26 @@ module hex_vga (
   wire [9:0] pipeline_front_screen_x;
   wire [9:0] pipeline_front_screen_y;
 
-  reg [7:0] yaw = 0;
+  reg [7:0] yaw = 128;
   reg [7:0] pitch = 40;
 
   // TODO: find the right look-ahead amount here.
   assign pipeline_front_screen_x = (screen_x + 20) % 640;
   assign pipeline_front_screen_y = screen_y % 480;
 
-  reg [32*32:0] bitmap;
+  game_logic my_game_logic (
+      .clk(counter[1]),
+      .rst(VGA_HS),
+      .key_y(key_y),
+      .key_u(key_u),
+      .key_k(key_k),
+      .key_m(key_m),
+      .key_n(key_n),
+      .key_h(key_h),
+      .bitmap(bitmap),
+      .player_q(player_q),
+      .player_r(player_r)
+  );
 
   vga my_vga (
       .clk(counter[1]),
@@ -67,10 +89,10 @@ module hex_vga (
     plane_x_dummy <= ({{15{plane_x[16]}}, plane_x} + 360) << 8;
     plane_y_dummy <= ({{15{plane_y[16]}}, plane_y} + 280) << 8;
 
-    bitmap[10*32+10] <= 1;
+    //bitmap[10*32+10] <= 1;
   end
   always @(posedge VGA_VS) begin
-    yaw <= yaw + 1;
+    //yaw <= yaw + 6;
     //pitch <= pitch + 1;
   end
 endmodule

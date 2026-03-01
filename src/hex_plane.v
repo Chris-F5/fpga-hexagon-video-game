@@ -7,33 +7,6 @@ module hex_plane (
     output reg [3:0] end_green,
     output reg [3:0] end_blue
 );
-  /*
-  reg signed  [31:0] qd;  // Q16.16
-  reg signed  [31:0] rd;  // Q16.16
-  wire signed [31:0] sd;  // Q16.16
-  assign sd = -qd - rd;
-  wire signed [31:0] qd_offset;
-  wire signed [31:0] rd_offset;
-  wire signed [31:0] sd_offset;
-  assign qd_offset = qd + (1 << 14);
-  assign rd_offset = rd + (1 << 14);
-  assign sd_offset = sd + (1 << 14);
-  wire [15:0] qd_round;  // Q16.0
-  wire [15:0] rd_round;
-  wire [15:0] sd_round;
-  assign qd_round = qd_offset[31:16];
-  assign rd_round = rd_offset[31:16];
-  assign sd_round = sd_offset[31:16];
-  wire [14:0] qd_err;  // Q0.16 (max is 1/2)
-  wire [14:0] rd_err;
-  wire [14:0] sd_err;
-  assign qd_err = qd[15] ? qd_offset[14:0] : qd[14:0];
-  assign rd_err = rd[15] ? rd_offset[14:0] : rd[14:0];
-  assign sd_err = sd[15] ? sd_offset[14:0] : sd[14:0];
-  reg signed [15:0] q;  // Q16.0
-  reg signed [15:0] r;
-  reg signed [15:0] s;
-  */
   reg signed  [31:0] qd;  // Q16.16
   reg signed  [31:0] rd;
   wire signed [31:0] sd;
@@ -59,21 +32,36 @@ module hex_plane (
   reg signed [15:0] q;
   reg signed [15:0] r;
   reg signed [15:0] s;
+  reg distance_0;
+  reg distance_1;
+
+  wire signed [47:0] start_x_48 = {{16{start_x[31]}}, start_x};
+  wire signed [47:0] start_y_48 = {{16{start_y[31]}}, start_y} + 50000;
+  wire signed [47:0] qd_48 = (start_x_48 * 43691) >>> 12;
+  wire signed [47:0] rd_48 = (start_x_48 * (-21845) + start_y_48 * 37837) >>> 12;
 
   always @(posedge clk) begin
     // PIPELINE STAGE 0
     // 43691 = 2**16 * (2/3)
     // 21845 = 2**16 * (1/3)
     // 37837 = 2**16 * (sqrt(3)/3)
-    qd <= (start_x * 43691) >>> 12;
-    rd <= (start_x * (-21845) + start_y * 37837) >>> 12;
-    /*
-    qd <= ((start_x[9:0]) * 11) >>> 4;
-    rd <= ((start_x[9:0]) * (-5) + (start_y[9:0]) * (+9)) >>> 4;
-    */
+    //qd <= (start_x_48 * 43691) >>> 12;
+    //rd <= (start_x_48 * (-21845) + start_y_48 * 37837) >>> 12;
+    qd <= $signed(qd_48[31:0]);
+    rd <= $signed(rd_48[31:0]);
+
+    //if (start_x > 100) distance_0 <= 1;
+    //else distance_0 <= 0;
+    if (start_x[31] || (!start_x[31] && start_x > 180000)
+      || start_y[31] || (!start_y[31] && start_y > 200000))
+      distance_0 <= 1;
+    else distance_0 <= 0;
 
 
     // PIPELINE STAGE 1
+    distance_1 <= distance_0;
+
+
     if (qd_err > rd_err && qd_err > sd_err) begin
       q <= -rd_round - sd_round;
       r <= rd_round;
@@ -88,10 +76,16 @@ module hex_plane (
       s <= -qd_round - rd_round;
     end
 
+    // palette
+    // EAF7CF CEB5A7 92828D ADAABF
+    // (15,15,12) (13, 11, 10) (9, 8, 8) (11, 11, 12)
+
     // PIPELINE STAGE 2
-    end_red   <= q[0] ? 15 : 0;
-    end_blue  <= r[0] ? 15 : 0;
-    end_green <= s[0] ? 15 : 0;
-    //end_green <= bitmap[q*32+r] ? 15 : 0;
+    end_red   <= distance_1 | bitmap[q*32+r] ? (q[0] ? 9 : 11) : (0);
+    end_blue  <= distance_1 | bitmap[q*32+r] ? (q[0] ? 8 : 11) : (0);
+    end_green <= distance_1 | bitmap[q*32+r] ? (r[0] ? 8 : 12) : (0);
+    //end_blue  <= r[0] ? 15 : 0;
+    //end_blue  <= (!distance_1 && bitmap[q*32+r]) ? 15 : 0;
+    //end_green <= distance_1 ? 15 : 0;
   end
 endmodule
