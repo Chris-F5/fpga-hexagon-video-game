@@ -1,0 +1,39 @@
+gameplay video: https://www.youtube.com/watch?v=jnG2rAN-wWk
+
+This is my submission for the 48-hour 2026 cambridge game jam. In previous years
+[1][2], I participated in the game jam and wrote my game in assembly. This year
+I wanted to go even "lower-level". So this submission is written in Verilog and
+runs on an Nexus A7 T100 development board equiped with an AMD Artix 7 FPGA.
+This is my first time properly using verilog, the idea was that I'd use the game
+jam as an oppotunity to learn a hardware description language.
+
+Video output is generated with my custom graphics pipeline and sent to the VGA
+driver which was also written during the jam. There is no framebuffer, instead
+I generate pixels in a 36-stage pipeline clocked at 25MHz, the same frequency
+pixels are output on VGA. Pixels leaving the pipeline are sent directly to VGA
+in a kind of "just-in-time" rendering of individial pixels. The pipeline looks
+something like this:
+
+  1. Predict screen_coords that will need to be sent on VGA 36 cycles in the future.
+  2. Model,view,projection matrix applied.
+  3. 2 divisions convert from homogenous to non-homogenous plane xy coordinates.
+  4. Plane coordinates convert to 'cube' hexagonal coordinate system.
+  5. Hexagon coordinates converted to color by inspecting game state.
+
+Keyboard input is read from a PS2 keyboard driver. I use a modified version of
+Digilent's keyboard demo [3].
+
+Gemini 3.1 Pro with Opencode was used to write the cpp test benches and the game
+logic. So the technical achievement of the project is the 3d rendering pipeline.
+
+In the game, you play a a hexagon. The objective is to visit all hexagons on
+the game board without visiting the same hexagon twice.
+
+The theme of the game jam "set in stone" is met in two ways.
+  1. The game code is in some sense "set in stone" when flashed to the board.
+  2. After you visit a hexagon, it becomes "set in stone" and can not be re-visited.
+
+
+[1] https://github.com/Chris-F5/2425_cambridge_game_jam
+[2] https://github.com/Chris-F5/lazer_recoil
+[3] https://github.com/Digilent/Nexys-A7-100T-Keyboard
